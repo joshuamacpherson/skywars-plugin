@@ -1,9 +1,6 @@
 package com.example.skywars;
 
-import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
-import org.bukkit.World;
-import org.bukkit.Location;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -22,6 +19,7 @@ public class GameManager {
     private List<Player> alivePlayers = new ArrayList<>();
     private BukkitTask countdownTask;
     private final MiniMessage mm = MiniMessage.miniMessage();
+    private final Location lobbyLocation = new Location(Bukkit.getWorld("world"), 0, 170, 0);
 
     public GameManager(SkywarsPlugin plugin) {
         this.plugin = plugin;
@@ -40,7 +38,7 @@ public class GameManager {
             return;
         }
         allPlayers.add(player);
-        broadcast("<gold" + player.getName() + " joined! ("
+        broadcast("<gold>" + player.getName() + " joined! ("
                 + allPlayers.size() + " players)");
 
         if (allPlayers.size() >= 2 && state == GameState.WAITING) {
@@ -57,7 +55,7 @@ public class GameManager {
     }
 
     private void startCountdown() {
-        state = GameState.COUNTDOWN;
+        setState(GameState.COUNTDOWN);
         countdown = 10;
         countdownTask = Bukkit.getScheduler()
                 .runTaskTimer(plugin, () -> {
@@ -73,7 +71,7 @@ public class GameManager {
     }
 
     private void startGame() {
-        state = GameState.IN_GAME;
+        setState(GameState.IN_GAME);
         alivePlayers = new ArrayList<>(allPlayers);
         broadcast("<gold>Game started! Fight!");
         World world = Bukkit.getWorld("world");
@@ -97,27 +95,23 @@ public class GameManager {
         if (alivePlayers.size() == 1) {
             Player winner = alivePlayers.getFirst();
             broadcast("<gold>" + winner.getName() + " wins!");
-            state = GameState.ENDED;
+            setState(GameState.ENDED);
             countdown = 10;
             countdownTask = Bukkit.getScheduler()
                     .runTaskTimer(plugin, () -> {
                         if (countdown <= 0) {
                             countdownTask.cancel();
-                            startGame();
+                            for (Player p : allPlayers) {
+                                p.teleport(lobbyLocation);
+                                p.setGameMode(GameMode.ADVENTURE);
+                            }
+                            setState(GameState.WAITING);
                             return;
                         }
                         broadcast("<gold>Game ending in "
                                 + countdown + "...");
                         countdown--;
                     }, 0L, 20L); // 20tps ideally so 1 second = 20 ticks
-
-            for (Player p : allPlayers) {
-                p.teleport(new Location(
-                        Bukkit.getWorld("world"), 0, 170, 0));
-                p.setGameMode(GameMode.ADVENTURE);
-            }
-
-            state = GameState.WAITING;
         }
     }
 
@@ -131,5 +125,17 @@ public class GameManager {
 
     public List<Player> getAllPlayers() {
         return allPlayers;
+    }
+
+    public Location getLobbyLocation() {
+        return lobbyLocation;
+    }
+
+    private void setState(GameState newState) {
+        this.state = newState;
+        World world = Bukkit.getWorld("world");
+        if (world != null) {
+            world.setGameRule(GameRules.PVP, newState == GameState.IN_GAME);
+        }
     }
 }

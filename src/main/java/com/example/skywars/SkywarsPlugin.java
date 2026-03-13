@@ -1,6 +1,8 @@
 package com.example.skywars;
 
 import com.example.skywars.listeners.PlayerListener;
+import org.bukkit.Bukkit;
+import org.bukkit.World;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class SkywarsPlugin extends JavaPlugin {
@@ -12,6 +14,15 @@ public class SkywarsPlugin extends JavaPlugin {
         this.gameManager = new GameManager(this);
         getServer().getPluginManager()
                 .registerEvents(new PlayerListener(gameManager), this);
+
+        World world = Bukkit.getWorld("world");
+        if (world == null) {
+            getLogger().severe("World 'world' not found! Disabling plugin.");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+        world.setSpawnLocation(0, 170, 0);
+
         getLogger().info("SkyWars enabled!");
     }
 
