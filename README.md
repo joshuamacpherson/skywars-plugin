@@ -1,4 +1,4 @@
-# SkyWars
+# SkyWars (WIP)
 
 A SkyWars minigame plugin prototype built with the Paper API for Minecraft 1.21.4+.
 
@@ -34,7 +34,7 @@ The map uses a void world with 8 pre-defined island spawn points arranged in a c
 
 Plugin built using this map: https://www.planetminecraft.com/project/skywars-monumental/
 
-If not using this map, edit the island spawn locations in src/main/java/com/example/skywars/GameManager.java and the lobby spawn in src/main/resources/config.yml.
+If not using this map, edit the island/lobby spawn locations in src/main/resources/config.yml
 
 ## Game Flow
 
@@ -53,4 +53,4 @@ If not using this map, edit the island spawn locations in src/main/java/com/exam
 ## Notes
 
 - World name must be `world` (default Paper world name)
-- This is a prototype — single game instance only, no multi-arena support
+- Just a prototype, no arena management yet
