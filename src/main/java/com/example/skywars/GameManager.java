@@ -111,6 +111,13 @@ public class GameManager {
                         countdown--;
                     }, 0L, 20L); // 20tps ideally so 1 second = 20 ticks
 
+            for (Player p : allPlayers) {
+                p.teleport(new Location(
+                        Bukkit.getWorld("world"), 0, 170, 0));
+                p.setGameMode(GameMode.ADVENTURE);
+            }
+
+            state = GameState.WAITING;
         }
     }
 
