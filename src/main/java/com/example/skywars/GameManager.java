@@ -19,14 +19,13 @@ public class GameManager {
     private List<Player> alivePlayers = new ArrayList<>();
     private BukkitTask countdownTask;
     private final MiniMessage mm = MiniMessage.miniMessage();
-    private final Location lobbyLocation = new Location(Bukkit.getWorld("world"), 0, 170, 0);
 
     public GameManager(SkywarsPlugin plugin) {
         this.plugin = plugin;
     }
 
     public void eliminatePlayer(Player player) {
-        broadcast("<gold>" + player.getName() + " was eliminated!");
+        broadcast("<red>" + player.getName() + " was eliminated!");
         player.setGameMode(GameMode.SPECTATOR);
         alivePlayers.remove(player);
         checkWinCondition();
@@ -34,11 +33,11 @@ public class GameManager {
 
     public void addPlayer(Player player) {
         if (state != GameState.WAITING && state != GameState.COUNTDOWN) {
-            broadcast("<gold>A game is already in progress!");
+            broadcast("<yellow>A game is already in progress!");
             return;
         }
         allPlayers.add(player);
-        broadcast("<gold>" + player.getName() + " joined! ("
+        broadcast("<yellow>" + player.getName() + " joined! ("
                 + allPlayers.size() + " players)");
 
         if (allPlayers.size() >= 2 && state == GameState.WAITING) {
@@ -74,17 +73,7 @@ public class GameManager {
         setState(GameState.IN_GAME);
         alivePlayers = new ArrayList<>(allPlayers);
         broadcast("<gold>Game started! Fight!");
-        World world = Bukkit.getWorld("world");
-        List<Location> spawns = List.of(
-                new Location(world, -23, 81, 35),
-                new Location(world, -30, 81, 22),
-                new Location(world, -35, 81, -23),
-                new Location(world, -23, 81, -30),
-                new Location(world, 23, 81, -35),
-                new Location(world, 30, 81, -23),
-                new Location(world, 35, 81, 23),
-                new Location(world, 23, 81, 30)
-        );
+        List<Location> spawns = getSpawns();
         for (int i = 0; i < alivePlayers.size(); i++) {
             alivePlayers.get(i).teleport(spawns.get(i));
             alivePlayers.get(i).setGameMode(GameMode.SURVIVAL);
@@ -101,8 +90,9 @@ public class GameManager {
                     .runTaskTimer(plugin, () -> {
                         if (countdown <= 0) {
                             countdownTask.cancel();
+                            Location lobby = getLobbyLocation();
                             for (Player p : allPlayers) {
-                                p.teleport(lobbyLocation);
+                                p.teleport(lobby);
                                 p.setGameMode(GameMode.ADVENTURE);
                             }
                             setState(GameState.WAITING);
@@ -127,15 +117,33 @@ public class GameManager {
         return allPlayers;
     }
 
-    public Location getLobbyLocation() {
-        return lobbyLocation;
-    }
-
     private void setState(GameState newState) {
         this.state = newState;
         World world = Bukkit.getWorld("world");
         if (world != null) {
             world.setGameRule(GameRules.PVP, newState == GameState.IN_GAME);
         }
+    }
+
+    private List<Location> getSpawns() {
+        World world = Bukkit.getWorld("world");
+        List<Location> spawns = new ArrayList<>();
+        for (var section : plugin.getConfig().getMapList("spawns")) {
+            double x = ((Number) section.get("x")).doubleValue();
+            double y = ((Number) section.get("y")).doubleValue();
+            double z = ((Number) section.get("z")).doubleValue();
+            spawns.add(new Location(world, x, y, z));
+        }
+        return spawns;
+    }
+
+    public Location getLobbyLocation() {
+        var config = plugin.getConfig();
+        World world = Bukkit.getWorld("world");
+        return new Location(world,
+                config.getDouble("lobby.x"),
+                config.getDouble("lobby.y"),
+                config.getDouble("lobby.z")
+        );
     }
 }

@@ -11,6 +11,7 @@ public class SkywarsPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        saveDefaultConfig();
         this.gameManager = new GameManager(this);
         getServer().getPluginManager()
                 .registerEvents(new PlayerListener(gameManager), this);
