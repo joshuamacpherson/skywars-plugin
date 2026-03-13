@@ -1,0 +1,5 @@
+name: SkyWars
+version: 1.0
+main: com.example.skywars.SkyWarsPlugin
+api-version: "1.21"
+description: A SkyWars prototype
